@@ -13,6 +13,15 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      server: {
+        proxy: {
+          '/maps/api': {
+            target: 'https://maps.googleapis.com',
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/maps\/api/, '/maps/api')
+          }
+        }
       }
     };
 });

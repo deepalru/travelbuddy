@@ -13,7 +13,7 @@ export const getPlaceDetails = async (placeId: string): Promise<Partial<Place> |
 
   try {
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,geometry,photos,rating,reviews,opening_hours,formatted_phone_number,website,types,price_level&key=${GOOGLE_MAPS_API_KEY}`
+      `/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,geometry,photos,rating,reviews,opening_hours,formatted_phone_number,website,types,price_level&key=${GOOGLE_MAPS_API_KEY}`
     );
     
     if (!response.ok) {
@@ -48,7 +48,7 @@ export const getPlaceDetails = async (placeId: string): Promise<Partial<Place> |
         relative_time_description: review.relative_time_description
       })),
       photoUrl: place.photos?.[0] 
-        ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_MAPS_API_KEY}`
+        ? `/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_MAPS_API_KEY}`
         : `https://picsum.photos/400/300?random=${Math.floor(Math.random() * 1000)}`
     };
   } catch (error) {
@@ -69,7 +69,7 @@ export const searchPlaces = async (
   }
 
   try {
-    let url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_MAPS_API_KEY}`;
+    let url = `/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_MAPS_API_KEY}`;
     
     if (location) {
       url += `&location=${location.lat},${location.lng}&radius=${radius}`;
@@ -95,7 +95,7 @@ export const searchPlaces = async (
       rating: place.rating || 4.0,
       address: place.formatted_address || 'Address not available',
       photoUrl: place.photos?.[0] 
-        ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_MAPS_API_KEY}`
+        ? `/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_MAPS_API_KEY}`
         : `https://picsum.photos/400/300?random=${index + 100}`,
       description: `Discover ${place.name}, a popular ${place.types?.[0]?.replace(/_/g, ' ') || 'destination'} in the area.`,
       localTip: 'Check opening hours before visiting.',
@@ -126,7 +126,7 @@ export const getNearbyPlaces = async (
   }
 
   try {
-    let url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location.lat},${location.lng}&radius=${radius}&key=${GOOGLE_MAPS_API_KEY}`;
+    let url = `/maps/api/place/nearbysearch/json?location=${location.lat},${location.lng}&radius=${radius}&key=${GOOGLE_MAPS_API_KEY}`;
     
     if (type) {
       url += `&type=${type}`;
@@ -152,7 +152,7 @@ export const getNearbyPlaces = async (
       rating: place.rating || 4.0,
       address: place.vicinity || place.formatted_address || 'Address not available',
       photoUrl: place.photos?.[0] 
-        ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_MAPS_API_KEY}`
+        ? `/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_MAPS_API_KEY}`
         : `https://picsum.photos/400/300?random=${index + 200}`,
       description: `Experience ${place.name}, a highly-rated ${place.types?.[0]?.replace(/_/g, ' ') || 'location'}.`,
       localTip: place.opening_hours?.open_now ? 'Currently open!' : 'Check opening hours.',
