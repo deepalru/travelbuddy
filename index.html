@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Buddy Web Explorer</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#00AEEF"> 
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Travel Buddy">
+  <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png"> 
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD8G22_65M5eM6l0oOHDstdzDZYu6rkmJQ&libraries=marker&v=beta"></script>
+  <style>
+    /* --- Skyline Professional Theme --- */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #F5F5F5; /* Light Gray */
+      color: #333333; /* Charcoal */
+      overflow-x: hidden;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fadeInUp {
+      animation: fadeInUp 0.5s ease-out forwards;
+    }
+
+    @keyframes contentFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-content-fade-in {
+      animation: contentFadeIn 0.4s ease-out forwards;
+    }
+    
+    .animate-fadeInRight {
+        animation: fadeInRight 0.3s ease-out forwards;
+    }
+    @keyframes fadeInRight {
+        from { transform: translateX(50px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    .animate-fadeOutRight {
+        animation: fadeOutRight 0.3s ease-in forwards;
+    }
+    @keyframes fadeOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* Scrollbar styling for webkit browsers */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F5F5F5; /* Light Gray */
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #999999; /* Medium Gray */
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00AEEF; /* Sky Blue */
+    }
+    /* For Firefox */
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: #999999 #F5F5F5; /* Medium Gray thumb, Light Gray track */
+    }
+
+    /* For modern input placeholders */
+    ::placeholder {
+      color: #999999; /* Medium Gray */
+      opacity: 1; 
+    }
+
+    /* --- Custom Google Maps InfoWindow --- */
+    .gm-style .gm-style-iw-c { /* Outer container */
+      padding: 0 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Neutral shadow */
+      border: 1px solid #EEEEEE !important; /* Lighter border */
+      background-color: #FFFFFF !important;
+    }
+    .gm-style .gm-style-iw-d { /* Inner content container */
+      overflow: hidden !important; 
+    }
+    .gm-style .gm-ui-hover-effect { /* Hides the default 'X' close button */
+      display: none !important;
+    }
+    .gm-style .gm-style-iw-t::after { /* Hides the default infowindow tail */
+      display: none !important;
+    }
+    .info-window-content {
+      padding: 1rem;
+      font-family: 'Poppins', sans-serif;
+      color: #333333;
+    }
+    .info-window-content h3 {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+      color: #333333;
+    }
+    .info-window-content p {
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+      color: #777777;
+    }
+    .map-popup-button {
+      background: linear-gradient(135deg, #00AEEF, #003366); /* Sky Blue to Midnight Blue */
+      color: white;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      transition: all 0.2s ease-in-out;
+    }
+    .map-popup-button:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.1.0",
+    "react/": "https://esm.sh/react@19.1.0/",
+    "react-dom": "https://esm.sh/react-dom@19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@19.1.0/",
+    "react-dom/client": "https://esm.sh/react-dom@19.1.0/client",
+    "@google/genai": "https://esm.sh/@google/genai@^1.8.0",
+    "leaflet": "https://esm.sh/leaflet@^1.9.4"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
