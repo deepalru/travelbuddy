@@ -1,0 +1,9 @@
+{
+  "name": "Copy of Travel Buddy Web Explorer",
+  "description": "A web application to discover interesting places, powered by AI-generated content. This is a simplified web version of the Travel Buddy concept, focusing on visual presentation and data display using React and Tailwind CSS.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ],
+  "prompt": ""
+}
