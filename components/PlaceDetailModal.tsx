@@ -199,32 +199,29 @@ export const PlaceDetailModal: React.FC<PlaceDetailModalProps> = ({ place, onClo
     <div 
       className={`fixed inset-0 flex items-center justify-center p-4 z-50 transition-opacity duration-300 ease-out
                   ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-      style={{ backgroundColor: 'rgba(17, 24, 39, 0.6)', backdropFilter: 'blur(8px)' }}      
+      style={{ backgroundColor: 'rgba(24,24,27,0.85)' }}      
       onClick={handleCloseWithAnimation}
       role="dialog" aria-modal="true" aria-labelledby="modal-title"
     >
       <div 
-        className={`rounded-xl overflow-hidden w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] flex flex-col relative
+        className={`bg-zinc-800 rounded-md overflow-hidden w-full sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] flex flex-col relative
                     transform transition-all duration-300 ease-out
                     ${isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
         style={{ 
-          backgroundColor: 'var(--color-glass-bg)',
-          border: '1px solid var(--color-glass-border)',
-          boxShadow: 'var(--shadow-lg)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid #27272a',
+          boxShadow: '0 8px 32px 0 rgba(0,0,0,0.35)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative">
             <img src={place.photoUrl || 'https://picsum.photos/600/400?blur=2'} alt={place.name} loading="lazy"
                 className="w-full h-48 sm:h-56 object-cover" 
-                onError={(e) => { (e.target as HTMLImageElement).src = 'https://picsum.photos/600/400?grayscale'; }}
+                onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
             <button
                 onClick={handleCloseWithAnimation}
-                className="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-black/30 p-2 rounded-full transition-colors z-10 focus:outline-none focus:ring-2 ring-white backdrop-blur-sm bg-black/20"
+                className="absolute top-3 right-3 text-neutral-500 hover:text-neutral-100 hover:bg-neutral-500 p-2 rounded-md transition-colors z-10 focus:outline-none focus:ring-2 ring-white bg-zinc-800"
                 aria-label={t('close')}
                 >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-6 h-6">
@@ -361,7 +358,7 @@ export const PlaceDetailModal: React.FC<PlaceDetailModalProps> = ({ place, onClo
                                  <ul className="space-y-2">
                                     {recommendations.map(rec => (
                                         <li key={rec.id} className="text-xs p-2 rounded-md flex items-center gap-2" style={{backgroundColor: Colors.cardBackground, border: `1px solid ${Colors.cardBorder}`}}>
-                                            <img src={rec.photoUrl} alt={rec.name} className="w-10 h-10 rounded-md object-cover flex-shrink-0" />
+                                            <img src={rec.photoUrl} alt={rec.name} className="w-10 h-10 rounded-md object-cover flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }} />
                                             <div className="flex-grow">
                                                 <p className="font-semibold" style={{color: Colors.text}}>{rec.name}</p>
                                                 <p style={{color: Colors.text_secondary}}>{rec.type}</p>

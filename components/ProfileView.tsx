@@ -161,7 +161,7 @@ const FavoritesTabContent: React.FC<ProfileViewProps> = ({ favoritePlaces }) => 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {favoritePlaces.map(place => (
                     <div key={place.id} className="p-3 rounded-lg relative overflow-hidden" style={{backgroundColor: 'var(--color-input-bg)'}}>
-                        <img src={place.photoUrl} alt={place.name} className="w-full h-24 object-cover rounded-md mb-2"/>
+                        <img src={place.photoUrl} alt={place.name} className="w-full h-24 object-cover rounded-md mb-2" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}/>
                         <h4 className="font-semibold text-sm">{place.name}</h4>
                         <p className="text-xs flex items-center gap-1" style={{color: 'var(--color-text-secondary)'}}>
                             <MapPin size={12} /> {place.address.split(',')[0]}
@@ -196,7 +196,7 @@ const TripsTabContent: React.FC<ProfileViewProps> = ({ savedTripPlans, onViewSav
             <div className="space-y-4">
                 {savedTripPlans.map(plan => (
                      <div key={plan.id} className="p-3 rounded-lg flex flex-col md:flex-row items-start md:items-center gap-4" style={{backgroundColor: 'var(--color-input-bg)'}}>
-                        <img src={plan.dailyPlans[0]?.photoUrl || '/api/placeholder/300/200'} alt={plan.destination} className="w-full md:w-32 h-20 object-cover rounded-md"/>
+                        <img src={plan.dailyPlans[0]?.photoUrl || '/api/placeholder/300/200'} alt={plan.destination} className="w-full md:w-32 h-20 object-cover rounded-md" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}/>
                         <div className="flex-grow">
                             <h4 className="font-semibold">{plan.tripTitle}</h4>
                             <p className="text-xs" style={{color: 'var(--color-text-secondary)'}}>{plan.duration} to {plan.destination}</p>

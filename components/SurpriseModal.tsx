@@ -120,7 +120,7 @@ const SurpriseModal: React.FC<SurpriseModalProps> = ({
                     loading="lazy"
                     className="w-full h-48 object-cover rounded-lg mb-3 shadow-md" 
                     style={{boxShadow: Colors.boxShadow}}
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://picsum.photos/600/400?grayscale&blur=1'; }}
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
                 />
               )}
               {suggestion.category && (

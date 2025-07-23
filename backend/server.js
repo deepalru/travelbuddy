@@ -11,18 +11,22 @@ app.use(cors());
 
 app.get('/api/places', async (req, res) => {
   const { lat, lng, keyword } = req.query;
-  if (!lat || !lng || !keyword) {
+  if (!lat || !lng) {
     return res.status(400).json({ error: 'Missing required query parameters.' });
   }
-  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=2000&keyword=${encodeURIComponent(keyword)}&key=${GOOGLE_PLACES_API_KEY}`;
+  let url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=2000&key=${GOOGLE_PLACES_API_KEY}`;
+  if (keyword) {
+    url += `&keyword=${encodeURIComponent(keyword)}`;
+  }
   try {
     const response = await fetch(url);
     const data = await response.json();
-    if (data.error_message) {
-      console.error('Google Places API error:', data.error_message, data);
-      return res.status(500).json({ error: data.error_message, details: data });
+    console.log('Google Places API response:', JSON.stringify(data, null, 2));
+    if (data.error_message || data.status !== 'OK') {
+      console.error('Google Places API error:', data.error_message || data.status, data);
+      return res.status(500).json({ error: data.error_message || data.status, details: data });
     }
-    res.json(data);
+    res.json(data.results || []);
   } catch (err) {
     console.error('Backend fetch error:', err);
     res.status(500).json({ error: 'Failed to fetch from Google Places API.', details: err.toString() });

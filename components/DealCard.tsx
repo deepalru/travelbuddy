@@ -88,7 +88,7 @@ const DealCard: React.FC<DealCardProps> = ({
           <img 
             src={placePhotoUrl} alt={t('dealsTab.dealImageAlt', {placeName: deal.placeName})}
             loading="lazy" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => { (e.target as HTMLImageElement).src = 'https://picsum.photos/300/200?grayscale&blur=1'; }}
+            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
           />
         </div>
       )}

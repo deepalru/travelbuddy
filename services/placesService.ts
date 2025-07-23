@@ -18,17 +18,35 @@ export const searchNearbyPlaces = async (
   const url = `http://localhost:3001/api/places?lat=${latitude}&lng=${longitude}&keyword=${encodeURIComponent(keyword)}`;
   const response = await fetch(url);
   const data = await response.json();
-  if (!data.results) return [];
-  return data.results.map((result: any) => ({
-    place_id: result.place_id,
-    name: result.name,
-    formatted_address: result.vicinity,
-    types: result.types,
-    geometry: result.geometry,
-    rating: result.rating,
-    user_ratings_total: result.user_ratings_total,
-    business_status: result.business_status,
-    additional_photos: result.photos,
-    opening_hours: result.opening_hours,
-  }));
+  // If backend returns an array, use it directly
+  if (Array.isArray(data)) {
+    return data.map((result: any) => ({
+      place_id: result.place_id,
+      name: result.name,
+      formatted_address: result.vicinity,
+      types: result.types,
+      geometry: result.geometry,
+      rating: result.rating,
+      user_ratings_total: result.user_ratings_total,
+      business_status: result.business_status,
+      additional_photos: result.photos,
+      opening_hours: result.opening_hours,
+    }));
+  }
+  // Fallback for old object format
+  if (data.results) {
+    return data.results.map((result: any) => ({
+      place_id: result.place_id,
+      name: result.name,
+      formatted_address: result.vicinity,
+      types: result.types,
+      geometry: result.geometry,
+      rating: result.rating,
+      user_ratings_total: result.user_ratings_total,
+      business_status: result.business_status,
+      additional_photos: result.photos,
+      opening_hours: result.opening_hours,
+    }));
+  }
+  return [];
 };
