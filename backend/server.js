@@ -2,6 +2,7 @@ const express = require('express');
 const fetch = require('node-fetch');
 const cors = require('cors');
 require('dotenv').config();
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -98,6 +99,14 @@ app.get('/api/places', async (req, res) => {
     console.error('Backend fetch error:', err);
     res.status(500).json({ error: 'Failed to fetch from Google Places API.', details: err.toString() });
   }
+});
+
+// Serve static files from the frontend build
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Fallback to index.html for SPA (after API routes)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
 app.listen(PORT, () => {

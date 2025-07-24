@@ -232,9 +232,9 @@ export const PlaceDetailModal: React.FC<PlaceDetailModalProps> = ({ place, onClo
                 <h2 id="modal-title" className="text-xl sm:text-2xl font-bold leading-tight" style={{textShadow: '0 1px 3px rgba(0,0,0,0.5)'}}>{place.name}</h2>
                 <p className="text-sm sm:text-base font-medium" style={{textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}>{place.formatted_address || place.address}</p>
                 <div className="flex items-center mt-2 text-sm">
-                    <span style={{color: Colors.gold}}>{'★'.repeat(Math.round(place.rating))}</span>
-                    <span style={{color: '#E0E0E0'}}>{'★'.repeat(5 - Math.round(place.rating))}</span>
-                    <span className="ml-2 font-semibold">({place.rating.toFixed(1)})</span>
+                    <span style={{color: Colors.gold}}>{'★'.repeat(Math.round(place.rating ?? 0))}</span>
+                    <span style={{color: '#E0E0E0'}}>{'★'.repeat(5 - Math.round(place.rating ?? 0))}</span>
+                    <span className="ml-2 font-semibold">({typeof place.rating === 'number' ? place.rating.toFixed(1) : 'N/A'})</span>
                     <span className="ml-1 opacity-90">({t('placeDetailModal.ratingsSuffix', {count: place.user_ratings_total?.toString() || '0'})})</span>
                 </div>
             </div>

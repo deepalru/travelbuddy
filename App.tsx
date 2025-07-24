@@ -63,6 +63,8 @@ import LocalAgencyPlannerView from './components/LocalAgencyPlannerView.tsx';
 import ShareModal from './components/ShareModal.tsx';
 import LoadingSpinner from './components/LoadingSpinner.tsx';
 import { searchNearbyPlaces } from './services/placesService.ts'; // <-- Import Google Places fetcher
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { AuthProvider } from "./contexts/AuthContext";
 
 export const App: React.FC = () => {
   console.log('[App] App component mounted');
@@ -1470,7 +1472,22 @@ export const App: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <ToastContainer />
       {showAuthModal && <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} view={authModalView} onSwitchView={() => setAuthModalView(v => v === 'login' ? 'register' : 'login')} onLogin={handleLogin} onRegister={handleRegister} onGoogleLogin={handleGoogleLogin} isLoading={authLoading} error={authError} />}
-      {selectedPlaceDetail && <PlaceDetailModal place={selectedPlaceDetail} onClose={() => setSelectedPlaceDetail(null)} onSelectRecommendedPlaceById={handleSelectPlaceByNameOrId} homeCurrency={currentUser?.homeCurrency} exchangeRates={exchangeRates} userReviews={userReviewsForSelectedPlace} onAddUserReview={handleAddUserReview} currentUser={currentUser} hasAccessToBasic={hasAccess('basic')} hasAccessToPremium={hasAccess('premium')} />}
+      {selectedPlaceDetail && (
+        <ErrorBoundary>
+          <PlaceDetailModal
+            place={selectedPlaceDetail}
+            onClose={() => setSelectedPlaceDetail(null)}
+            onSelectRecommendedPlaceById={handleSelectPlaceByNameOrId}
+            homeCurrency={currentUser?.homeCurrency}
+            exchangeRates={exchangeRates}
+            userReviews={userReviewsForSelectedPlace}
+            onAddUserReview={handleAddUserReview}
+            currentUser={currentUser}
+            hasAccessToBasic={hasAccess('basic')}
+            hasAccessToPremium={hasAccess('premium')}
+          />
+        </ErrorBoundary>
+      )}
       {showItineraryModal && <ItineraryModal isOpen={showItineraryModal} onClose={() => setShowItineraryModal(false)} itinerary={generatedItinerary} isLoading={isGeneratingItinerary} error={itineraryError} selectedPlaces={allPlaces.filter(p => selectedPlaceIdsForItinerary.includes(p.id))} onSaveItinerary={(it) => { if (it.id && !savedOneDayItineraries.some(i => i.id === it.id)) { setSavedOneDayItineraries(prev => [...prev, it]); addToast({ message: t('oneDayItineraryTab.itinerarySavedToast'), type: 'success' }); } else { addToast({ message: t('oneDayItineraryTab.planAlreadySavedInfo'), type: 'info' }); } }} savedOneDayItineraryIds={savedOneDayItineraries.map(i => i.id || '')} isPlanSavable={hasAccess('basic')} />}
       {showTripPlannerModal && <TripPlannerModal isOpen={showTripPlannerModal} onClose={() => setShowTripPlannerModal(false)} tripPlan={generatedTripPlan} isLoading={isGeneratingTripPlan} error={tripPlanError} destination={tripDestination} duration={tripDuration} onSaveTripPlan={handleSaveTripPlan} isPlanSavable={hasAccess('premium')} onShareToCommunity={handleShareTripPlanToCommunity} />}
       {showSurpriseModal && <SurpriseModal isOpen={showSurpriseModal} onClose={() => setShowSurpriseModal(false)} suggestion={surpriseSuggestion} isLoading={isLoadingSurprise} error={surpriseError} />}
@@ -1507,3 +1524,11 @@ export const App: React.FC = () => {
     </div>
   );
 }
+
+const AppWithProviders: React.FC = () => (
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);
+
+export default AppWithProviders;

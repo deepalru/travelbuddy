@@ -36,8 +36,14 @@ const PlaceCard: React.FC<PlaceCardProps> = ({
 
   // Prefer Google Place Photo if available
   let imageUrl = place.photoUrl || '/placeholder.jpg';
-  if (place.photos && place.photos.length > 0 && place.photos[0].photo_reference) {
-    imageUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=YOUR_API_KEY`;
+  let attribution: string | null = null;
+  if (place.photos && Array.isArray(place.photos) && place.photos.length > 0 && place.photos[0].photo_reference) {
+    // Use the correct env variable name for your API key
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
+    imageUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${apiKey}`;
+    if (place.photos[0].html_attributions && place.photos[0].html_attributions.length > 0) {
+      attribution = place.photos[0].html_attributions[0];
+    }
   }
 
   return (
@@ -53,6 +59,9 @@ const PlaceCard: React.FC<PlaceCardProps> = ({
         loading="lazy"
         onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
       />
+      {attribution && (
+        <div className="text-[10px] text-gray-400 mt-1" dangerouslySetInnerHTML={{ __html: attribution }} />
+      )}
       <div className="flex flex-col flex-grow">
         <div className="flex items-center gap-2 mb-1">
           <h2 id={`place-name-${place.id}`} className="font-bold text-lg text-gray-900">{place.name}</h2>

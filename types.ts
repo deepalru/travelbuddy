@@ -138,6 +138,10 @@ export interface Place {
   userReviews?: UserReview[];
   averageUserRating?: number;
   totalUserReviews?: number;
+
+  // Google Places API fields
+  photos?: Photo[];
+  vicinity?: string;
 }
 
 export interface Deal {
