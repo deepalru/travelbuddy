@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node backend/server.js"
+    "start": "node backend/server.js",
+    "postbuild": "node scripts/copy-manifest.cjs"
   },
   "dependencies": {
     "@google/genai": "^1.10.0",
