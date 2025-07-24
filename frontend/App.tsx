@@ -247,7 +247,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (activeTab === 'aiAssistant' && hasAccess('premium') && !chatSession) {
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
             const newChat = ai.chats.create({
                 model: GEMINI_MODEL_TEXT,
                 history: [],
