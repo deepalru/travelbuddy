@@ -59,9 +59,11 @@ const generateContentWithRetry = async (
   }
 };
 
+export { generateContentWithRetry };
+
 
 // --- BATCHED ENRICHMENT PROMPT ---
-const enrichMultiplePlaceDetailsPrompt = (placeFacts: Partial<Place>[]): string => {
+export const enrichMultiplePlaceDetailsPrompt = (placeFacts: Partial<Place>[]): string => {
   const factSheet = placeFacts.map(p => `
 - ID: ${p.place_id}
 - Name: ${p.name}
@@ -520,7 +522,11 @@ The user's query is: "${query}".
 Find these locations in the area around latitude ${latitude.toFixed(4)} and longitude ${longitude.toFixed(4)}.
 Focus on places within an approximate 10-kilometer (or 6-mile) radius.
 Please provide a JSON array of up to 7 REAL places that best match the query.
-Each place object in the array MUST conform to the simplified "Place" structure. Pay special attention to "name", "address", "geometry.location", and "photoUrl", which should be a relevant image URL from Unsplash using the format 'https://source.unsplash.com/300x200/?' followed by URL-encoded keywords based on the place name.
+Each place object in the array MUST conform to the simplified "Place" structure. Pay special attention to "name", "address", "geometry.location", and "photoUrl".
+For the 'photoUrl', use the format:
+- "photoUrl": "https://source.unsplash.com/400x300/?{place name},{place type},{nearest city},{country},{user query},travel"
+If the place name is generic or not found, use the type, city, country, and the user's original query as keywords.
+Always ensure the image is as relevant as possible to the place.
 Example response for a query "late night pharmacies":
 [
   {
@@ -529,7 +535,7 @@ Example response for a query "late night pharmacies":
     "type": "Pharmacy",
     "rating": 4.2,
     "address": "456 Health Ave, Anytown, CA 90210, USA",
-    "photoUrl": "https://source.unsplash.com/300x200/?pharmacy,night",
+    "photoUrl": "https://source.unsplash.com/400x300/?24-Hour City Pharmacy,Pharmacy,Anytown,USA,late night pharmacies,travel",
     "description": "A reliable 24/7 pharmacy with a wide selection of medications and essentials.",
     "localTip": "The pharmacist here is very helpful for minor ailment advice.",
     "handyPhrase": "Do you have something for a headache?",
@@ -622,7 +628,7 @@ const fetchLocalInfoPrompt = (latitude: number, longitude: number): string => `
 `;
 
 // Helper function to process Gemini response
-const processResponse = <T>(response: GenerateContentResponse, promptType: string): T => {
+export const processResponse = <T>(response: GenerateContentResponse, promptType: string): T => {
   const rawText = response.text;
   if (!rawText) {
     console.error(`Gemini API Error for ${promptType}: No text in response. Full response:`, response);

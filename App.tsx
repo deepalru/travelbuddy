@@ -16,6 +16,9 @@ import {
   fetchSupportLocations,
   fetchLocalInfo,
   generateLocalAgencyPlan,
+  enrichMultiplePlaceDetailsPrompt, // <-- Import Gemini batch enrichment
+  processResponse, // <-- Import Gemini response processor
+  generateContentWithRetry // <-- Import Gemini content generator
 } from './services/geminiService.ts';
 import { fetchExchangeRates } from './services/exchangeRateService.ts';
 import Header from './components/Header.tsx';
@@ -59,6 +62,7 @@ import PlannerHomeView from './components/PlannerHomeView.tsx';
 import LocalAgencyPlannerView from './components/LocalAgencyPlannerView.tsx';
 import ShareModal from './components/ShareModal.tsx';
 import LoadingSpinner from './components/LoadingSpinner.tsx';
+import { searchNearbyPlaces } from './services/placesService.ts'; // <-- Import Google Places fetcher
 
 export const App: React.FC = () => {
   console.log('[App] App component mounted');
@@ -72,6 +76,7 @@ export const App: React.FC = () => {
   const [actualSearchTerm, setActualSearchTerm] = useState<string>('');
 
   const [selectedType, setSelectedType] = useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all'); // Default to 'all'
   
   const { addToast, removeToast } = useToast(); 
   const { language, setLanguage, t } = useLanguage(); 
@@ -443,14 +448,48 @@ export const App: React.FC = () => {
     setIsLoading(true);
     try {
       addToast({ message: userLocation ? t('placeExplorer.fetchingNearby') : t('placeExplorer.fetchingDefault'), type: "info", duration: 1500 });
-      
-      const interestsToUse = searchQuery ? [] : (currentUser?.selectedInterests || []);
-      
-      const fetchedPlaces = await fetchNearbyPlaces(userLocation?.latitude, userLocation?.longitude, interestsToUse, searchQuery);
-      
-      setAllPlaces(fetchedPlaces);
+      // Step 1: Fetch places from Google Places API (backend) with category (omit if 'all')
+      const factualPlaces = await searchNearbyPlaces(
+        userLocation?.latitude || 0,
+        userLocation?.longitude || 0,
+        searchQuery ? [searchQuery] : [],
+        selectedCategory === 'all' ? undefined : selectedCategory
+      );
+      if (!factualPlaces || factualPlaces.length === 0) {
+        setAllPlaces([]);
+        addToast({ message: t('placeExplorer.noPlacesFound'), type: 'info', duration: 2000 });
+        setIsLoading(false);
+        return;
+      }
+      // Step 2: Enrich with Gemini AI
+      const enrichmentPrompt = enrichMultiplePlaceDetailsPrompt(factualPlaces);
+      const enrichmentResponse = await generateContentWithRetry({
+        model: 'models/gemini-2.0-flash',
+        contents: enrichmentPrompt,
+        config: { responseMimeType: 'application/json' },
+      });
+      const creativeContents = processResponse<Array<Partial<Place> & { id: string }>>(enrichmentResponse, 'enrichMultiplePlaceDetails');
+      const creativeMap = new Map(creativeContents.map(c => [c.id, c]));
+      // Step 3: Merge
+      const mergedPlaces = factualPlaces.map(placeFacts => {
+        if (!placeFacts.place_id) return null;
+        const creativeContent = creativeMap.get(placeFacts.place_id);
+        if (!creativeContent) return { ...placeFacts };
+        return {
+          ...placeFacts,
+          ...creativeContent,
+          id: placeFacts.place_id,
+          name: placeFacts.name,
+          address: placeFacts.formatted_address || 'Unknown Address',
+          type: creativeContent.type || (placeFacts.types && placeFacts.types.length > 0 ? placeFacts.types[0].replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Point of Interest'),
+          description: creativeContent.description || `An interesting place to visit: ${placeFacts.name}.`,
+          localTip: creativeContent.localTip || 'Check online for opening hours before you visit.',
+          handyPhrase: creativeContent.handyPhrase || 'Hello, how are you?',
+        };
+      }).filter((p): p is Place => p !== null);
+      setAllPlaces(mergedPlaces);
       if (searchQuery) {
-        addToast({ message: `Found ${fetchedPlaces.length} places for "${searchQuery}"`, type: 'success', duration: 2000 });
+        addToast({ message: `Found ${mergedPlaces.length} places for "${searchQuery}"`, type: 'success', duration: 2000 });
       } else {
         addToast({ message: t('placeExplorer.placesLoadedSuccess'), type: "success", duration: 2000 });
       }
@@ -462,7 +501,7 @@ export const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [userLocation, addToast, currentUser?.selectedInterests, t]);
+  }, [userLocation, addToast, t, selectedCategory]);
 
   useEffect(() => {
     if (userLocation) {
@@ -1166,6 +1205,24 @@ export const App: React.FC = () => {
     return allPlaces.filter(p => favoritePlaceIds.includes(p.id))
   }, [allPlaces, favoritePlaceIds]);
 
+  // List of available categories for the dropdown
+  const CATEGORY_OPTIONS = [
+    { value: 'all', label: 'All' },
+    { value: 'landmarks', label: 'Landmarks' },
+    { value: 'culture', label: 'Culture & History' },
+    { value: 'nature', label: 'Nature & Outdoors' },
+    { value: 'food', label: 'Food & Dining' },
+    { value: 'entertainment', label: 'Entertainment' },
+    { value: 'lodging', label: 'Accommodation' },
+    { value: 'shopping', label: 'Shopping' },
+    { value: 'events', label: 'Events & Festivals' },
+  ];
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCategory(e.target.value);
+    // Trigger a new search with the current search term
+    loadPlaces(actualSearchTerm);
+  };
 
   const renderMainContent = () => {
     if (portalView === 'adminPortal') {
@@ -1176,7 +1233,6 @@ export const App: React.FC = () => {
             />
         );
     }
-    
     let content;
     switch (activeTab) {
       case 'forYou':
@@ -1197,6 +1253,21 @@ export const App: React.FC = () => {
         break;
       case 'placeExplorer':
         content = (
+          <>
+            {/* Category Dropdown UI */}
+            <div className="mb-4 flex items-center gap-2">
+              <label htmlFor="category-select" className="font-semibold text-sm">Category:</label>
+              <select
+                id="category-select"
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                className="border rounded px-2 py-1 text-sm"
+              >
+                {CATEGORY_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
             <PlaceExplorerView
                 uniqueTypes={uniqueTypes}
                 selectedType={selectedType}
@@ -1226,6 +1297,7 @@ export const App: React.FC = () => {
                 hasAccessToBasic={hasAccess('basic')}
                 hasAccessToPremium={hasAccess('premium')}
             />
+          </>
         );
         break;
       case 'deals':

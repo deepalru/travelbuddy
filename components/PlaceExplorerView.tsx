@@ -74,6 +74,9 @@ const PlaceExplorerView: React.FC<PlaceExplorerViewProps> = ({
 }) => {
   const { t } = useLanguage();
 
+  // Always show all places, ignore filters
+  const allPlaces = filteredPlaces;
+
   const renderSkeletons = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {Array.from({ length: 8 }).map((_, index) => <PlaceCardSkeleton key={index} />)}
@@ -84,7 +87,7 @@ const PlaceExplorerView: React.FC<PlaceExplorerViewProps> = ({
 
   return (
     <>
-      {/* SearchBar is removed. TypeFilter and other controls remain. */}
+      {/* Filters removed for always showing all places */}
       <div className="mb-6 md:flex md:items-center md:justify-between gap-4">
         {uniqueTypes.length > 1 && (
            <TypeFilter types={uniqueTypes} selectedType={selectedType} onSelectType={(type) => { onSelectType(type); /* Toast handled in App.tsx */ }} />
@@ -174,18 +177,18 @@ const PlaceExplorerView: React.FC<PlaceExplorerViewProps> = ({
       {!error && !isLoading && (
         placeExplorerView === 'map' ? (
           <div className="h-[60vh] md:h-[70vh] w-full mb-6">
-            <MapView places={filteredPlaces} onSelectPlaceDetail={onSelectPlaceDetail} userLocation={userLocation} />
+            <MapView places={allPlaces} onSelectPlaceDetail={onSelectPlaceDetail} userLocation={userLocation} />
           </div>
         ) : (
-          filteredPlaces.length === 0 ? (
+          allPlaces.length === 0 ? (
             <div className="text-center py-16 px-6 rounded-2xl" style={{backgroundColor: Colors.cardBackground, boxShadow: Colors.boxShadow}}>
               <svg className="mx-auto h-16 w-16 mb-4" style={{color: Colors.text_secondary}} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <p className="text-xl font-semibold mb-2" style={{color: Colors.text}}>{showFavoritesOnly ? (favoritePlaceIds.length === 0 ? t('placeExplorer.noFavoritesYet') : t('placeExplorer.noMatchingFavorites')) : (filteredPlaces.length === 0 && !isLoading ? t('placeExplorer.aiFetchingPlaces') : t('placeExplorer.noPlacesMatchSearch'))}</p>
-              <p className="text-md" style={{color: Colors.text_secondary}}>{showFavoritesOnly ? (favoritePlaceIds.length === 0 ? t('placeExplorer.exploreAndSaveFavorites') : t('placeExplorer.tryAdjustingFilters')) : (filteredPlaces.length === 0 && !isLoading ? t('placeExplorer.aiFetchingPlaces') : t('placeExplorer.tryDifferentSearch'))}</p>
+              <p className="text-xl font-semibold mb-2" style={{color: Colors.text}}>{t('placeExplorer.aiFetchingPlaces')}</p>
+              <p className="text-md" style={{color: Colors.text_secondary}}>{t('placeExplorer.tryDifferentSearch')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-8">
-              {filteredPlaces.map((place, index) => (
+              {allPlaces.map((place, index) => (
                 <PlaceCard key={place.id} place={place} onSelectPlaceDetail={onSelectPlaceDetail} style={{ animationDelay: `${index * 80}ms` }} isSelectedForItinerary={selectedPlaceIdsForItinerary.includes(place.id)} onToggleSelectForItinerary={onToggleSelectForItinerary} isFavorite={favoritePlaceIds.includes(place.id)} onToggleFavorite={onToggleFavoritePlace} hasAccessToBasic={hasAccessToBasic} />
               ))}
             </div>

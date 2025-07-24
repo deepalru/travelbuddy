@@ -12,10 +12,17 @@ declare global {
 export const searchNearbyPlaces = async (
   latitude: number,
   longitude: number,
-  keywords: string[]
+  keywords: string[],
+  category?: string
 ): Promise<Partial<Place>[]> => {
-  const keyword = keywords.join(' ');
-  const url = `http://localhost:3001/api/places?lat=${latitude}&lng=${longitude}&keyword=${encodeURIComponent(keyword)}`;
+  const keyword = keywords.join(' ').trim();
+  let url = `http://localhost:3001/api/places?lat=${latitude}&lng=${longitude}`;
+  if (keyword) {
+    url += `&keyword=${encodeURIComponent(keyword)}`;
+  }
+  if (category) {
+    url += `&category=${encodeURIComponent(category)}`;
+  }
   const response = await fetch(url);
   const data = await response.json();
   // If backend returns an array, use it directly
