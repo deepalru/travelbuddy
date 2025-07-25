@@ -221,7 +221,7 @@ export const ItineraryModal: React.FC<ItineraryModalProps> = ({
                           className="p-3 rounded-lg flex items-start gap-2.5" 
                           style={{
                             border: `1px solid ${Colors.cardBorder}`, 
-                            backgroundColor: Colors.inputBackground, 
+                            backgroundColor: 'var(--color-surface)', 
                             boxShadow: Colors.boxShadowSoft,
                             opacity: isCompleted ? 0.75 : 1,
                           }}
@@ -266,7 +266,7 @@ export const ItineraryModal: React.FC<ItineraryModalProps> = ({
           )}
         </div>
 
-        <div className="p-3 border-t flex flex-col sm:flex-row justify-end gap-2.5 items-center" style={{ backgroundColor: `${Colors.inputBackground}80`, borderColor: Colors.cardBorder }}>
+        <div className="p-3 border-t flex flex-col sm:flex-row justify-end gap-2.5 items-center" style={{ backgroundColor: `var(--color-surface)`, borderColor: Colors.cardBorder }}>
           {itinerary && !isLoading && !error && (
              <button
                 onClick={() => onSaveItinerary(itinerary)}

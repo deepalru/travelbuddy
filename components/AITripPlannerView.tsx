@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TripPace, TravelStyle, BudgetLevel, UserInterest } from '../types.ts';
 import { Colors } from '../constants.ts';
 import { useLanguage } from '../contexts/LanguageContext.tsx';
@@ -26,7 +26,7 @@ const Sprout = ({className}:{className?:string}) => <Icon className={className}>
 const UtensilsCrossed = ({className}:{className?:string}) => <Icon className={className}><path d="m16 2-8.4 8.4a.9.9 0 0 0 0 1.2l6.8 6.8a.9.9 0 0 0 1.2 0l8.4-8.4"/><path d="m18 16 2-2"/><path d="m6 8-2 2"/><path d="m2 16 6 6"/><path d="M14 4 6 12"/></Icon>;
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-    <div className="mb-8 p-6 card-base">
+    <div className="mb-8 p-6 rounded-xl border" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-glass-border)' }}>
       <h3 className="text-xl font-bold mb-4" style={{color: 'var(--color-text-primary)'}}>{title}</h3>
       {children}
     </div>
@@ -65,6 +65,59 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
   isGeneratingTripPlan,
   handleGenerateTripPlan,
 }) => {
+  const [estimatedBudget, setEstimatedBudget] = useState<string>('');
+  const [weatherPreference, setWeatherPreference] = useState<string>('any');
+  const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
+  const [showSavedGuides, setShowSavedGuides] = useState<boolean>(false);
+  const [editingGuideIndex, setEditingGuideIndex] = useState<number | null>(null);
+  const [editingGuide, setEditingGuide] = useState<any>(null);
+
+  const quickTemplates = [
+    { name: 'Weekend Getaway', duration: '2-3 days', styles: [TravelStyle.RomanticGetaway], pace: TripPace.Relaxed },
+    { name: 'Adventure Trip', duration: '5-7 days', styles: [TravelStyle.Adventure, TravelStyle.NatureLover], pace: TripPace.FastPaced },
+    { name: 'Cultural Explorer', duration: '4-6 days', styles: [TravelStyle.Cultural, TravelStyle.Foodie], pace: TripPace.Moderate },
+    { name: 'Family Vacation', duration: '7-10 days', styles: [TravelStyle.FamilyFriendly], pace: TripPace.Relaxed },
+  ];
+  
+  const applyTemplate = (template: any) => {
+    setTripDuration(template.duration);
+    setTripTravelStyles(template.styles);
+    setTripPace(template.pace);
+  };
+
+  const handleSaveLocalGuide = () => {
+    const newGuide = {
+      destination: tripDestination,
+      duration: tripDuration,
+      interests: tripInterests,
+      pace: tripPace,
+      travelStyles: tripTravelStyles,
+      budget: tripBudget,
+      savedAt: new Date().toISOString(),
+    };
+    setSavedTemplates(prev => [...prev, newGuide]);
+    alert('Local Guide saved successfully!');
+  };
+
+  const handleDeleteGuide = (index: number) => {
+    setSavedTemplates(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleEditGuide = (index: number) => {
+    setEditingGuideIndex(index);
+    setEditingGuide(savedTemplates[index]);
+    setShowSavedGuides(false);
+  };
+
+  const handleSaveEditedGuide = () => {
+    if (editingGuideIndex !== null && editingGuide) {
+      setSavedTemplates(prev => prev.map((guide, i) => i === editingGuideIndex ? editingGuide : guide));
+      setEditingGuideIndex(null);
+      setEditingGuide(null);
+      alert('Local Guide updated successfully!');
+    }
+  };
+
   const { t } = useLanguage();
 
   const paceOptions = [
@@ -123,7 +176,7 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
       </div>
 
       <Section title={t('aiTripPlannerView.theBasics')}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2" style={{color: 'var(--color-text-secondary)'}}>
               <MapPin className="w-5 h-5" />
@@ -148,7 +201,39 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
               className="input-base w-full pl-10 pr-4 py-3 text-md"
             />
           </div>
+          <div className="relative">
+            <select
+              value={weatherPreference}
+              onChange={e => setWeatherPreference(e.target.value)}
+              className="input-base w-full py-3 text-md"
+            >
+              <option value="any">Any Weather</option>
+              <option value="sunny">Sunny & Warm</option>
+              <option value="mild">Mild & Pleasant</option>
+              <option value="cool">Cool & Crisp</option>
+            </select>
+          </div>
         </div>
+      </Section>
+
+      <Section title="Budget Estimation">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{color: 'var(--color-text-secondary)'}}>Estimated Budget (USD)</label>
+            <input
+              type="text"
+              placeholder="e.g., $1000-2000"
+              value={estimatedBudget}
+              onChange={e => setEstimatedBudget(e.target.value)}
+              className="input-base w-full"
+            />
+          </div>
+          <div className="flex items-end">
+            <div className="p-3 rounded-lg w-full" style={{backgroundColor: 'var(--color-input-bg)', border: '1px solid var(--color-glass-border)'}}>              <p className="text-xs" style={{color: 'var(--color-text-secondary)'}}>💡 Budget will be considered for accommodation, dining, and activity recommendations</p>
+            </div>
+          </div>
+        </div>
+
       </Section>
 
       <Section title={t('aiTripPlannerView.yourStyle')}>
@@ -157,7 +242,7 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
             <h4 className="font-semibold mb-3" style={{color: 'var(--color-text-secondary)'}}>{t('aiTripPlannerView.paceTitle')}</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {paceOptions.map(option => (
-                <button key={option.value} onClick={() => setTripPace(option.value)} className="p-4 rounded-xl text-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400" style={{border: `2px solid ${tripPace === option.value ? 'var(--color-primary)' : 'var(--color-glass-border)'}`, transform: tripPace === option.value ? 'scale(1.05)' : 'scale(1)', backgroundColor: 'var(--color-input-bg)'}}>
+                <button key={option.value} onClick={() => setTripPace(option.value)} className="p-4 rounded-xl text-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400" style={{border: `2px solid ${tripPace === option.value ? 'var(--color-primary)' : 'var(--color-glass-border)'}`, transform: tripPace === option.value ? 'scale(1.05)' : 'scale(1)', backgroundColor: 'var(--color-surface)'}}>
                   <div className="mx-auto mb-2" style={{color: tripPace === option.value ? 'var(--color-primary)' : 'var(--color-text-secondary)'}}>{option.icon}</div>
                   <p className="font-semibold text-sm" style={{color: 'var(--color-text-primary)'}}>{t(option.labelKey)}</p>
                   <p className="text-xs" style={{color: 'var(--color-text-secondary)'}}>{t(option.descKey)}</p>
@@ -169,7 +254,7 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
             <h4 className="font-semibold mb-3" style={{color: 'var(--color-text-secondary)'}}>{t('aiTripPlannerView.budgetTitle')}</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                {budgetOptions.map(option => (
-                <button key={option.value} onClick={() => setTripBudget(option.value)} className="p-4 rounded-xl text-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400" style={{border: `2px solid ${tripBudget === option.value ? 'var(--color-primary)' : 'var(--color-glass-border)'}`, transform: tripBudget === option.value ? 'scale(1.05)' : 'scale(1)', backgroundColor: 'var(--color-input-bg)'}}>
+                <button key={option.value} onClick={() => setTripBudget(option.value)} className="p-4 rounded-xl text-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400" style={{border: `2px solid ${tripBudget === option.value ? 'var(--color-primary)' : 'var(--color-glass-border)'}`, transform: tripBudget === option.value ? 'scale(1.05)' : 'scale(1)', backgroundColor: 'var(--color-surface)'}}>
                   <div className="mx-auto mb-2" style={{color: tripBudget === option.value ? 'var(--color-primary)' : 'var(--color-text-secondary)'}}>{option.icon}</div>
                   <p className="font-semibold text-sm" style={{color: 'var(--color-text-primary)'}}>{t(option.labelKey)}</p>
                   <p className="text-xs" style={{color: 'var(--color-text-secondary)'}}>{t(option.descKey)}</p>
@@ -184,7 +269,7 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
               {travelStyleOptions.map(option => {
                 const isSelected = tripTravelStyles.includes(option.value);
                 return (
-                  <button key={option.value} onClick={() => handleStyleToggle(option.value)} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400" style={{backgroundColor: isSelected ? `var(--color-primary)30` : 'var(--color-input-bg)', color: isSelected ? 'var(--color-primary-dark)' : 'var(--color-text-secondary)', border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-glass-border)'}`}}>
+                  <button key={option.value} onClick={() => handleStyleToggle(option.value)} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400" style={{backgroundColor: isSelected ? `var(--color-primary)30` : 'var(--color-surface)', color: isSelected ? 'var(--color-primary-dark)' : 'var(--color-text-secondary)', border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-glass-border)'}`}}>
                     {option.icon}
                     <span>{t(travelStyleToLabelKey(option.value))}</span>
                   </button>
@@ -201,7 +286,7 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
              <p className="text-xs mb-3" style={{color: 'var(--color-text-secondary)'}}>{t('aiTripPlannerView.interestsSubtitle')}</p>
              <div className="flex flex-wrap gap-2 mb-4">
                 {Object.values(UserInterest).map(interest => (
-                    <button type="button" key={interest} onClick={() => handleInterestTagClick(interest)} className="px-2.5 py-1 text-xs rounded-md transition-colors duration-200" style={{backgroundColor: 'var(--color-input-bg)', border: `1px solid var(--color-glass-border)`, color: 'var(--color-text-secondary)'}}>
+                    <button type="button" key={interest} onClick={() => handleInterestTagClick(interest)} className="px-2.5 py-1 text-xs rounded-md transition-colors duration-200" style={{backgroundColor: 'var(--color-surface)', border: `1px solid var(--color-glass-border)`, color: 'var(--color-text-secondary)'}}>
                         + {t(userInterestToLabelKey(interest))}
                     </button>
                 ))}
@@ -216,7 +301,23 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
          </div>
       </Section>
 
-      <div className="mt-8 text-center">
+      <Section title="Quick Templates">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {quickTemplates.map((template, idx) => (
+            <button
+              key={idx}
+              onClick={() => applyTemplate(template)}
+              className="p-3 rounded-lg text-left transition-all hover:scale-105"
+              style={{backgroundColor: 'var(--color-input-bg)', border: '1px solid var(--color-glass-border)'}}
+            >
+              <p className="font-semibold text-sm" style={{color: 'var(--color-text-primary)'}}>{template.name}</p>
+              <p className="text-xs" style={{color: 'var(--color-text-secondary)'}}>{template.duration}</p>
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      <div className="mt-8 text-center space-y-4">
         <button onClick={handleGenerateTripPlan} disabled={isGeneratingTripPlan || !tripDestination || !tripDuration} className="btn btn-primary w-full max-w-sm py-4 px-6 text-lg">
             {isGeneratingTripPlan ? (
                 <>
@@ -230,7 +331,73 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
                 </>
             )}
         </button>
+        <button onClick={handleSaveLocalGuide} disabled={!tripDestination || !tripDuration} className="btn btn-secondary w-full max-w-sm py-3 px-6 text-lg">
+          Save as Local Guide
+        </button>
+        <button onClick={() => setShowSavedGuides(prev => !prev)} className="btn btn-outline w-full max-w-sm py-3 px-6 text-lg">
+          {showSavedGuides ? 'Hide' : 'Show'} Saved Guides
+        </button>
       </div>
+
+      {showSavedGuides && (
+        <div className="max-w-4xl mx-auto mt-6 p-4 border rounded-lg" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-glass-border)' }}>
+          <h3 className="text-xl font-semibold mb-4">Saved Local Guides</h3>
+          {savedTemplates.length === 0 ? (
+            <p>No saved guides yet.</p>
+          ) : (
+            <ul className="space-y-3">
+              {savedTemplates.map((guide, index) => (
+                <li key={index} className="border p-3 rounded flex justify-between items-center" style={{ borderColor: 'var(--color-glass-border)' }}>
+                  <div>
+                    <p><strong>Destination:</strong> {guide.destination}</p>
+                    <p><strong>Duration:</strong> {guide.duration}</p>
+                    <p><strong>Interests:</strong> {guide.interests}</p>
+                    <p><strong>Pace:</strong> {guide.pace}</p>
+                    <p><strong>Budget:</strong> {guide.budget}</p>
+                    <p><small>Saved at: {new Date(guide.savedAt).toLocaleString()}</small></p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleEditGuide(index)} className="btn btn-sm btn-primary">Edit</button>
+                    <button onClick={() => handleDeleteGuide(index)} className="btn btn-sm btn-danger">Delete</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {editingGuide && (
+        <div className="max-w-4xl mx-auto mt-6 p-4 border rounded-lg" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-glass-border)' }}>
+          <h3 className="text-xl font-semibold mb-4">Edit Local Guide</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-1 font-semibold">Destination</label>
+              <input type="text" value={editingGuide.destination} onChange={e => setEditingGuide({...editingGuide, destination: e.target.value})} className="input-base w-full" />
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold">Duration</label>
+              <input type="text" value={editingGuide.duration} onChange={e => setEditingGuide({...editingGuide, duration: e.target.value})} className="input-base w-full" />
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold">Interests</label>
+              <input type="text" value={editingGuide.interests} onChange={e => setEditingGuide({...editingGuide, interests: e.target.value})} className="input-base w-full" />
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold">Pace</label>
+              <input type="text" value={editingGuide.pace} onChange={e => setEditingGuide({...editingGuide, pace: e.target.value})} className="input-base w-full" />
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold">Budget</label>
+              <input type="text" value={editingGuide.budget} onChange={e => setEditingGuide({...editingGuide, budget: e.target.value})} className="input-base w-full" />
+            </div>
+          </div>
+          <div className="mt-4 flex gap-2">
+            <button onClick={handleSaveEditedGuide} className="btn btn-primary">Save Changes</button>
+            <button onClick={() => { setEditingGuide(null); setEditingGuideIndex(null); }} className="btn btn-secondary">Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

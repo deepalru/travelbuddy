@@ -37,6 +37,8 @@ export const TripPlannerModal: React.FC<TripPlannerModalProps> = ({
   const { t } = useLanguage();
   const [isReading, setIsReading] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -268,7 +270,7 @@ export const TripPlannerModal: React.FC<TripPlannerModalProps> = ({
                     const progress = totalActivities > 0 ? (completedCount / totalActivities) * 100 : 0;
 
                     return (
-                        <div key={day.day} className="card-base p-4 overflow-hidden">
+                        <div key={day.day} className="p-4 overflow-hidden rounded-xl border" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-glass-border)' }}>
                             {day.photoUrl && (
                                 <div className="h-40 -m-4 mb-4 rounded-t-xl overflow-hidden relative">
                                     <img src={day.photoUrl} alt={`View of ${day.title}`} className="w-full h-full object-cover"/>
@@ -294,7 +296,7 @@ export const TripPlannerModal: React.FC<TripPlannerModalProps> = ({
                             {day.activities.map((activity, actIndex) => {
                                 const isCompleted = !!completedActivities[`${dayIndex}-${actIndex}`];
                                 return (
-                                 <div key={actIndex} className={`p-3 rounded-lg transition-opacity duration-300 ${isCompleted ? 'opacity-60' : 'opacity-100'}`} style={{backgroundColor: 'var(--color-input-bg)'}}>
+                                 <div key={actIndex} className={`p-3 rounded-lg transition-opacity duration-300 ${isCompleted ? 'opacity-60' : 'opacity-100'}`} style={{backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-glass-border)'}}>
                                     <div className="flex items-start gap-3">
                                         <input type="checkbox" checked={isCompleted} onChange={() => handleToggleActivityCompletion(dayIndex, actIndex)} className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 no-print" style={{accentColor: 'var(--color-primary)'}} aria-label={t(isCompleted ? 'tripPlannerModal.markAsNotDone' : 'tripPlannerModal.markAsDone')} />
                                         <div className="flex-1">
@@ -311,6 +313,23 @@ export const TripPlannerModal: React.FC<TripPlannerModalProps> = ({
                                             <div className="flex gap-2 mt-2 no-print">
                                                 {activity.location && <button onClick={() => handleOpenInMaps(activity.location)} className="px-2 py-1 text-xs font-semibold rounded-md flex items-center gap-1" style={{backgroundColor: 'var(--color-surface)', color: 'var(--color-primary)', border: '1px solid var(--color-glass-border)'}}>{t('tripPlannerModal.openInMaps')} 🗺️</button>}
                                                 {activity.bookingLink && <a href={activity.bookingLink} target="_blank" rel="noopener noreferrer" className="px-2 py-1 text-xs font-semibold rounded-md flex items-center gap-1" style={{backgroundColor: 'var(--color-surface)', color: 'var(--color-primary)', border: '1px solid var(--color-glass-border)'}}>Booking Info 🔗</a>}
+                                                <button 
+                                                  onClick={() => setFavorites(prev => ({...prev, [`${dayIndex}-${actIndex}`]: !prev[`${dayIndex}-${actIndex}`]}))}
+                                                  className="px-2 py-1 text-xs font-semibold rounded-md flex items-center gap-1" 
+                                                  style={{backgroundColor: favorites[`${dayIndex}-${actIndex}`] ? 'var(--color-accent-warning)' : 'var(--color-surface)', color: favorites[`${dayIndex}-${actIndex}`] ? 'white' : 'var(--color-primary)', border: '1px solid var(--color-glass-border)'}}
+                                                >
+                                                  {favorites[`${dayIndex}-${actIndex}`] ? '★' : '☆'} Favorite
+                                                </button>
+                                            </div>
+                                            <div className="mt-2 no-print">
+                                              <input
+                                                type="text"
+                                                placeholder="Add personal note..."
+                                                value={notes[`${dayIndex}-${actIndex}`] || ''}
+                                                onChange={(e) => setNotes(prev => ({...prev, [`${dayIndex}-${actIndex}`]: e.target.value}))}
+                                                className="w-full px-2 py-1 text-xs rounded border"
+                                                style={{backgroundColor: 'var(--color-input-bg)', borderColor: 'var(--color-glass-border)'}}
+                                              />
                                             </div>
                                         </div>
                                     </div>
@@ -345,7 +364,7 @@ export const TripPlannerModal: React.FC<TripPlannerModalProps> = ({
            )}
         </div>
 
-        <div className="p-3 border-t flex flex-col sm:flex-row justify-end gap-2.5 items-center no-print" style={{ backgroundColor: `var(--color-input-bg)80`, borderColor: `var(--color-glass-border)` }}>
+        <div className="p-3 border-t flex flex-col sm:flex-row justify-end gap-2.5 items-center no-print" style={{ backgroundColor: `var(--color-surface)`, borderColor: `var(--color-glass-border)` }}>
           {tripPlan && (
             <>
               <button onClick={handleReadAloud} className={`${commonButtonStyles} w-full sm:w-auto`} style={{backgroundImage: `linear-gradient(135deg, ${Colors.accentInfo}, ${Colors.primary})`, color: 'white'}}>
@@ -356,7 +375,17 @@ export const TripPlannerModal: React.FC<TripPlannerModalProps> = ({
               </button>
               <button onClick={handleShareViaWhatsApp} className={`${commonButtonStyles} w-full sm:w-auto`} style={{backgroundImage: `linear-gradient(135deg, #25D366, #128C7E)`, color: 'white'}}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.267.651 4.383 1.803 6.182l-.341 1.236 1.241-.328z"/></svg>
-                {t('tripPlannerModal.shareViaWhatsApp')}
+                WhatsApp
+              </button>
+              <button 
+                onClick={() => {
+                  const url = `mailto:?subject=Trip Plan: ${tripPlan.tripTitle}&body=Check out this amazing trip plan!%0A%0A${encodeURIComponent(tripPlan.introduction)}`;
+                  window.open(url);
+                }}
+                className={`${commonButtonStyles} w-full sm:w-auto`} 
+                style={{backgroundImage: `linear-gradient(135deg, #EA4335, #D33B2C)`, color: 'white'}}
+              >
+                📧 Email
               </button>
               {onShareToCommunity && (
                   <button onClick={handleSharePlanToCommunity} className={`${commonButtonStyles} w-full sm:w-auto`} style={{backgroundImage: `linear-gradient(135deg, ${Colors.accentInfo}, ${Colors.primary})`, color: 'white'}}>

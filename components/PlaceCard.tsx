@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Place } from '../types.ts';
 import { Colors } from '../constants.ts';
 import LockIcon from './LockIcon.tsx';
@@ -34,11 +34,23 @@ const PlaceCard: React.FC<PlaceCardProps> = ({
      boxShadow: isSelectedForItinerary && hasAccessToBasic ? `0 0 12px var(--color-primary-light), var(--shadow-md)`: 'var(--shadow-md)',
   }
 
-  // Prefer Google Place Photo if available
-  let imageUrl = place.photoUrl || '/placeholder.jpg';
-  if (place.photos && place.photos.length > 0 && place.photos[0].photo_reference) {
-    imageUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=YOUR_API_KEY`;
-  }
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(true);
+
+  // Enhanced placeholder with place initials
+  const getPlaceholderImage = () => {
+    const initials = place.name 
+      ? place.name.split(' ').map(n => n[0]).join('').toUpperCase()
+      : 'PL';
+    
+    return `data:image/svg+xml;base64,${btoa(`<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" /><stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" /></linearGradient></defs><rect width="100%" height="100%" fill="url(#grad)"/><text x="50%" y="50%" font-family="Arial" font-size="48" fill="white" text-anchor="middle" dy=".3em">${initials.substring(0, 2)}</text></svg>`)}`;
+  };
+
+  useEffect(() => {
+    const finalImageUrl = place.photoUrl || getPlaceholderImage();
+    setImageUrl(finalImageUrl);
+    setImageLoading(false);
+  }, [place.photoUrl, place.name]);
 
   return (
     <div 
@@ -46,13 +58,21 @@ const PlaceCard: React.FC<PlaceCardProps> = ({
       style={{...cardBorderStyle, ...style}}
       aria-labelledby={`place-name-${place.id}`}
     >
-      <img
-        src={imageUrl}
-        alt={place.name}
-        className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
-        loading="lazy"
-        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.jpg'; }}
-      />
+      <div className="relative w-24 h-24 flex-shrink-0">
+        {!imageUrl || imageLoading ? (
+          <div className="w-full h-full bg-gray-200 rounded-lg animate-pulse" />
+        ) : (
+          <img
+            src={imageUrl}
+            alt={place.name}
+            className="w-full h-full object-cover rounded-lg"
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = getPlaceholderImage();
+            }}
+          />
+        )}
+      </div>
       <div className="flex flex-col flex-grow">
         <div className="flex items-center gap-2 mb-1">
           <h2 id={`place-name-${place.id}`} className="font-bold text-lg text-gray-900">{place.name}</h2>

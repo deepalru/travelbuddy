@@ -36,9 +36,9 @@
       --color-surface: #FFFFFF;
       --color-text-primary: #111827;
       --color-text-secondary: #6B7280;
-      --color-glass-bg: rgba(255, 255, 255, 0.4);
-      --color-glass-border: rgba(255, 255, 255, 0.2);
-      --color-input-bg: rgba(243, 244, 246, 0.7);
+      --color-glass-bg: #FFFFFF;
+      --color-glass-border: #E5E7EB;
+      --color-input-bg: #F3F4F6;
 
       /* Shadows */
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -63,9 +63,9 @@
       --color-surface: #1F2937;
       --color-text-primary: #F3F4F6;
       --color-text-secondary: #9CA3AF;
-      --color-glass-bg: rgba(31, 41, 55, 0.4);
-      --color-glass-border: rgba(255, 255, 255, 0.1);
-      --color-input-bg: rgba(55, 65, 81, 0.5);
+      --color-glass-bg: #1F2937;
+      --color-glass-border: #374151;
+      --color-input-bg: #374151;
     }
 
     body {
@@ -137,14 +137,12 @@
 
     /* --- GLOBAL COMPONENT STYLES --- */
 
-    /* Glassmorphic Cards */
+    /* Solid Cards */
     .card-base {
-      background-color: var(--color-glass-bg);
+      background-color: var(--color-surface);
       border: 1px solid var(--color-glass-border);
       border-radius: 1.5rem; /* Softer radius */
       box-shadow: var(--shadow-md);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
       transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
     }
     .card-base:hover {
