@@ -72,6 +72,33 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
   const [editingGuideIndex, setEditingGuideIndex] = useState<number | null>(null);
   const [editingGuide, setEditingGuide] = useState<any>(null);
 
+  // New state for expense categories and expenses
+  const [expenseCategories, setExpenseCategories] = useState<string[]>(['Accommodation', 'Food', 'Transport']);
+  const [expenses, setExpenses] = useState<{ category: string; amount: number; description: string }[]>([]);
+
+  // New state for saved trip plans
+  const [savedTripPlans, setSavedTripPlans] = useState<any[]>([]);
+
+  // Function to save current trip plan
+  const handleSaveTripPlan = () => {
+    if (!tripDestination || !tripDuration) {
+      alert('Please enter trip destination and duration before saving.');
+      return;
+    }
+    const newPlan = {
+      destination: tripDestination,
+      duration: tripDuration,
+      interests: tripInterests,
+      pace: tripPace,
+      travelStyles: tripTravelStyles,
+      budget: tripBudget,
+      estimatedBudget,
+      savedAt: new Date().toISOString(),
+    };
+    setSavedTripPlans(prev => [...prev, newPlan]);
+    alert('Trip plan saved successfully!');
+  };
+
   const quickTemplates = [
     { name: 'Weekend Getaway', duration: '2-3 days', styles: [TravelStyle.RomanticGetaway], pace: TripPace.Relaxed },
     { name: 'Adventure Trip', duration: '5-7 days', styles: [TravelStyle.Adventure, TravelStyle.NatureLover], pace: TripPace.FastPaced },
@@ -228,12 +255,47 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
               className="input-base w-full"
             />
           </div>
-          <div className="flex items-end">
-            <div className="p-3 rounded-lg w-full" style={{backgroundColor: 'var(--color-input-bg)', border: '1px solid var(--color-glass-border)'}}>              <p className="text-xs" style={{color: 'var(--color-text-secondary)'}}>💡 Budget will be considered for accommodation, dining, and activity recommendations</p>
+          <div className="flex flex-col gap-4">
+            <div className="p-3 rounded-lg w-full" style={{backgroundColor: 'var(--color-input-bg)', border: '1px solid var(--color-glass-border)'}}>
+              <p className="text-xs" style={{color: 'var(--color-text-secondary)'}}>💡 Budget will be considered for accommodation, dining, and activity recommendations</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2" style={{color: 'var(--color-text-primary)'}}>Expense Categories</h4>
+              <ul className="mb-2">
+                {expenseCategories.map((cat, idx) => (
+                  <li key={idx} className="text-sm" style={{color: 'var(--color-text-secondary)'}}>{cat}</li>
+                ))}
+              </ul>
+              <button onClick={() => {
+                const newCategory = prompt('Enter new expense category:');
+                if (newCategory && !expenseCategories.includes(newCategory)) {
+                  setExpenseCategories(prev => [...prev, newCategory]);
+                }
+              }} className="btn btn-sm btn-outline">Add Category</button>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2" style={{color: 'var(--color-text-primary)'}}>Expenses</h4>
+              <ul className="mb-2 max-h-40 overflow-y-auto border rounded p-2" style={{backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-glass-border)'}}>
+                {expenses.length === 0 && <li className="text-xs text-gray-500">No expenses added yet.</li>}
+                {expenses.map((expense, idx) => (
+                  <li key={idx} className="flex justify-between items-center text-sm mb-1">
+                    <span>{expense.category}: ${expense.amount.toFixed(2)} - {expense.description}</span>
+                    <button onClick={() => setExpenses(prev => prev.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-700">x</button>
+                  </li>
+                ))}
+              </ul>
+              <button onClick={() => {
+                const category = prompt('Enter expense category:');
+                const amountStr = prompt('Enter expense amount:');
+                const description = prompt('Enter expense description:');
+                const amount = amountStr ? parseFloat(amountStr) : NaN;
+                if (category && !isNaN(amount) && description) {
+                  setExpenses(prev => [...prev, { category, amount, description }]);
+                }
+              }} className="btn btn-sm btn-outline">Add Expense</button>
             </div>
           </div>
         </div>
-
       </Section>
 
       <Section title={t('aiTripPlannerView.yourStyle')}>
@@ -334,6 +396,9 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
         <button onClick={handleSaveLocalGuide} disabled={!tripDestination || !tripDuration} className="btn btn-secondary w-full max-w-sm py-3 px-6 text-lg">
           Save as Local Guide
         </button>
+        <button onClick={handleSaveTripPlan} disabled={!tripDestination || !tripDuration} className="btn btn-secondary w-full max-w-sm py-3 px-6 text-lg">
+          Save Trip Plan
+        </button>
         <button onClick={() => setShowSavedGuides(prev => !prev)} className="btn btn-outline w-full max-w-sm py-3 px-6 text-lg">
           {showSavedGuides ? 'Hide' : 'Show'} Saved Guides
         </button>
@@ -359,6 +424,29 @@ const AITripPlannerView: React.FC<AITripPlannerViewProps> = ({
                   <div className="flex gap-2">
                     <button onClick={() => handleEditGuide(index)} className="btn btn-sm btn-primary">Edit</button>
                     <button onClick={() => handleDeleteGuide(index)} className="btn btn-sm btn-danger">Delete</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          <h3 className="text-xl font-semibold mt-8 mb-4">Saved Trip Plans</h3>
+          {savedTripPlans.length === 0 ? (
+            <p>No saved trip plans yet.</p>
+          ) : (
+            <ul className="space-y-3">
+              {savedTripPlans.map((plan, index) => (
+                <li key={index} className="border p-3 rounded flex justify-between items-center" style={{ borderColor: 'var(--color-glass-border)' }}>
+                  <div>
+                    <p><strong>Destination:</strong> {plan.destination}</p>
+                    <p><strong>Duration:</strong> {plan.duration}</p>
+                    <p><strong>Interests:</strong> {plan.interests}</p>
+                    <p><strong>Pace:</strong> {plan.pace}</p>
+                    <p><strong>Budget:</strong> {plan.budget}</p>
+                    <p><strong>Estimated Budget:</strong> {plan.estimatedBudget}</p>
+                    <p><small>Saved at: {new Date(plan.savedAt).toLocaleString()}</small></p>
+                  </div>
+                  <div>
+                    <button onClick={() => setSavedTripPlans(prev => prev.filter((_, i) => i !== index))} className="btn btn-sm btn-danger">Delete</button>
                   </div>
                 </li>
               ))}
